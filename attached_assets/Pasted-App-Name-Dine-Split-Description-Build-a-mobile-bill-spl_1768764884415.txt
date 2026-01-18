@@ -1,0 +1,45 @@
+App Name: Dine Split
+
+Description:
+
+Build a mobile bill-splitting app called "Dine Split" with the following features:
+
+Core Functionality:
+
+Receipt Photo Capture: Camera access to take photos of restaurant receipts, plus option to upload from gallery
+Receipt OCR: Use Tabscanner API to extract line items from receipt photos - each item should have description, price, and quantity
+Multi-currency support: Detect currency from receipt (ZAR, USD, EUR, GBP, etc.) and display correct symbol throughout the app
+People Management:
+4. Add People: Button to add people by name to split the bill with
+
+Color-coded chips: Each person gets a unique color (8 colors available) shown as a colored chip/badge
+Person filter: Tap a person's chip to highlight only their assigned items
+Item Assignment:
+7. Select items: Checkbox for single-quantity items, +/- stepper for multi-quantity items
+
+Floating assign button: When items are selected, show "Assign X items" button at bottom
+If no people added yet: Show disabled button with hint "Add people above to assign items"
+Assignment dialog: Tap a person to assign selected quantities to them
+Visual feedback: Assigned items show person's color border; fully assigned items hide the checkbox/stepper
+Partial allocation indicator: Show "2/3 allocated" when items are partially assigned
+Tip Calculation:
+13. Tip selector: Preset buttons for 10%, 15%, 20% or custom percentage
+
+Per-person tip: Each person pays tip on their own subtotal
+Summary Panel:
+15. Collapsible summary: Shows bill total, allocated amount, outstanding amount
+
+Per-person breakdown: Each person's items, subtotal, tip, and total
+Reconciliation warning: Orange highlight when items still unassigned, green when complete
+Quality & Error Handling:
+18. Total mismatch warning: If item prices don't match receipt total (>5% difference), show warning suggesting clearer photo
+
+Image quality detection: Show error if receipt can't be read clearly
+Additional Features:
+20. Dark mode toggle: Switch between light and dark themes
+
+Share button: Export summary via share sheet or copy to clipboard
+Branding: Green primary color (#35a853), orange accent for "Add Person" button, fork icon in logo
+API Integration:
+
+Tabscanner API for receipt OCR (need TABSCANNER_API_KEY secret)
