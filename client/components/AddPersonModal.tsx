@@ -1,0 +1,147 @@
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Modal,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+
+import { ThemedText } from "@/components/ThemedText";
+import { Button } from "@/components/Button";
+import { useTheme } from "@/hooks/useTheme";
+import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+
+interface AddPersonModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onAdd: (name: string) => void;
+}
+
+export function AddPersonModal({
+  visible,
+  onClose,
+  onAdd,
+}: AddPersonModalProps) {
+  const { theme, isDark } = useTheme();
+  const [name, setName] = useState("");
+
+  const handleAdd = () => {
+    if (name.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onAdd(name.trim());
+      setName("");
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setName("");
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={handleClose}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.overlay}
+      >
+        <Pressable style={styles.backdrop} onPress={handleClose} />
+        <View
+          style={[styles.sheet, { backgroundColor: theme.backgroundRoot }]}
+        >
+          <View style={styles.handle} />
+          <View style={styles.header}>
+            <ThemedText style={styles.title}>Add Person</ThemedText>
+            <Pressable onPress={handleClose} hitSlop={8}>
+              <Feather name="x" size={24} color={theme.text} />
+            </Pressable>
+          </View>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.backgroundDefault,
+                color: theme.text,
+                borderColor: theme.border,
+              },
+            ]}
+            placeholder="Enter name"
+            placeholderTextColor={theme.textTertiary}
+            value={name}
+            onChangeText={setName}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleAdd}
+          />
+          <Button
+            onPress={handleAdd}
+            disabled={!name.trim()}
+            style={[
+              styles.addButton,
+              { backgroundColor: isDark ? Colors.dark.accent : Colors.light.accent },
+            ]}
+          >
+            Add Person
+          </Button>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  sheet: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing["4xl"],
+    paddingTop: Spacing.md,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    backgroundColor: "#D1D5DB",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: Spacing.lg,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.xl,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  input: {
+    height: Spacing.inputHeight,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.lg,
+    fontSize: 16,
+    marginBottom: Spacing.xl,
+  },
+  addButton: {
+    width: "100%",
+  },
+});

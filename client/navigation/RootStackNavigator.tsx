@@ -1,34 +1,108 @@
 import React from "react";
+import { Pressable, Image, View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import MainTabNavigator from "@/navigation/MainTabNavigator";
-import ModalScreen from "@/screens/ModalScreen";
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
+import { Alert, Platform } from "react-native";
+
+import SplitScreen from "@/screens/SplitScreen";
+import SettingsScreen from "@/screens/SettingsScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { useTheme } from "@/hooks/useTheme";
+import { ThemedText } from "@/components/ThemedText";
+import { Spacing } from "@/constants/theme";
 
 export type RootStackParamList = {
-  Main: undefined;
-  Modal: undefined;
+  Split: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+function HeaderTitle() {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.headerTitle}>
+      <Image
+        source={require("../../assets/images/icon.png")}
+        style={styles.headerIcon}
+        resizeMode="contain"
+      />
+      <ThemedText style={[styles.headerText, { color: theme.text }]}>
+        Dine Split
+      </ThemedText>
+    </View>
+  );
+}
+
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
+  const { theme } = useTheme();
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen
-        name="Main"
-        component={MainTabNavigator}
-        options={{ headerShown: false }}
+        name="Split"
+        component={SplitScreen}
+        options={({ navigation }) => ({
+          headerTitle: () => <HeaderTitle />,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                navigation.navigate("Settings");
+              }}
+              hitSlop={8}
+              style={styles.headerButton}
+            >
+              <Feather name="settings" size={22} color={theme.text} />
+            </Pressable>
+          ),
+          headerRight: () => (
+            <Pressable
+              onPress={async () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert(
+                  "Share",
+                  "Complete your bill split to share the summary."
+                );
+              }}
+              hitSlop={8}
+              style={styles.headerButton}
+            >
+              <Feather name="share" size={22} color={theme.textTertiary} />
+            </Pressable>
+          ),
+        })}
       />
       <Stack.Screen
-        name="Modal"
-        component={ModalScreen}
+        name="Settings"
+        component={SettingsScreen}
         options={{
-          presentation: "modal",
-          headerTitle: "Modal",
+          headerTitle: "Settings",
         }}
       />
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  headerTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerIcon: {
+    width: 28,
+    height: 28,
+    marginRight: Spacing.sm,
+  },
+  headerText: {
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  headerButton: {
+    padding: Spacing.xs,
+  },
+});
