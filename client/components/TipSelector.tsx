@@ -161,7 +161,7 @@ export function TipSelector({ tipPercentage, onTipChange }: TipSelectorProps) {
             <View style={styles.modalHeader}>
               <ThemedText style={styles.modalTitle}>Custom Tip</ThemedText>
               <Pressable onPress={() => setShowCustomModal(false)} hitSlop={8}>
-                <Feather name="x" size={24} color={theme.text} />
+                <ThemedText style={[styles.closeButton, { color: theme.text }]}>✕</ThemedText>
               </Pressable>
             </View>
             <View style={styles.inputRow}>
@@ -276,5 +276,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
     marginLeft: Spacing.sm,
+  },
+  closeButton: {
+    fontSize: 20,
+    fontWeight: "400",
   },
 });

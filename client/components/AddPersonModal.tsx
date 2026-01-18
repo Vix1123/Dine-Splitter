@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -29,6 +28,15 @@ export function AddPersonModal({
 }: AddPersonModalProps) {
   const { theme, isDark } = useTheme();
   const [name, setName] = useState("");
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [visible]);
 
   const handleAdd = () => {
     if (name.trim()) {
@@ -63,10 +71,11 @@ export function AddPersonModal({
           <View style={styles.header}>
             <ThemedText style={styles.title}>Add Person</ThemedText>
             <Pressable onPress={handleClose} hitSlop={8}>
-              <Feather name="x" size={24} color={theme.text} />
+              <ThemedText style={[styles.closeButton, { color: theme.text }]}>✕</ThemedText>
             </Pressable>
           </View>
           <TextInput
+            ref={inputRef}
             style={[
               styles.input,
               {
@@ -132,6 +141,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "600",
+  },
+  closeButton: {
+    fontSize: 20,
+    fontWeight: "400",
   },
   input: {
     height: Spacing.inputHeight,

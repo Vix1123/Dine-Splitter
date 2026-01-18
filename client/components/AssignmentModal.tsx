@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, View, Modal, Pressable, ScrollView } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useAnimatedStyle,
@@ -109,23 +108,31 @@ export function AssignmentModal({
               Assign {selectedCount} item{selectedCount !== 1 ? "s" : ""} to
             </ThemedText>
             <Pressable onPress={onClose} hitSlop={8}>
-              <Feather name="x" size={24} color={theme.text} />
+              <ThemedText style={[styles.closeButton, { color: theme.text }]}>✕</ThemedText>
             </Pressable>
           </View>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.grid}
-          >
-            {people.map((person) => (
-              <PersonCard
-                key={person.id}
-                person={person}
-                total={personTotals[person.id] || 0}
-                currencySymbol={currencySymbol}
-                onPress={() => onAssign(person.id)}
-              />
-            ))}
-          </ScrollView>
+          {people.length === 0 ? (
+            <View style={styles.emptyState}>
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No people added yet. Add people first to assign items.
+              </ThemedText>
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.grid}
+            >
+              {people.map((person) => (
+                <PersonCard
+                  key={person.id}
+                  person={person}
+                  total={personTotals[person.id] || 0}
+                  currencySymbol={currencySymbol}
+                  onPress={() => onAssign(person.id)}
+                />
+              ))}
+            </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
@@ -148,6 +155,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing["4xl"],
     paddingTop: Spacing.md,
     maxHeight: "60%",
+    minHeight: 200,
   },
   handle: {
     width: 36,
@@ -166,6 +174,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
+  },
+  closeButton: {
+    fontSize: 20,
+    fontWeight: "400",
   },
   scrollView: {
     flex: 1,
@@ -198,5 +210,13 @@ const styles = StyleSheet.create({
   },
   personTotal: {
     fontSize: 14,
+  },
+  emptyState: {
+    padding: Spacing.xl,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: "center",
   },
 });

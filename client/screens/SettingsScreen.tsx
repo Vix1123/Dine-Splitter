@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, Switch, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -55,11 +54,9 @@ export default function SettingsScreen() {
           ]}
         >
           <View style={styles.settingContent}>
-            <Feather
-              name={darkMode ? "moon" : "sun"}
-              size={20}
-              color={theme.text}
-            />
+            <ThemedText style={[styles.iconText, { color: theme.text }]}>
+              {darkMode ? "☾" : "☀"}
+            </ThemedText>
             <ThemedText style={styles.settingLabel}>Dark Mode</ThemedText>
           </View>
           <Switch
@@ -85,7 +82,7 @@ export default function SettingsScreen() {
         >
           <View style={[styles.settingRow, styles.groupedRow]}>
             <View style={styles.settingContent}>
-              <Feather name="info" size={20} color={theme.text} />
+              <ThemedText style={[styles.iconText, { color: theme.text }]}>ⓘ</ThemedText>
               <ThemedText style={styles.settingLabel}>Version</ThemedText>
             </View>
             <ThemedText style={{ color: theme.textSecondary }}>1.0.0</ThemedText>
@@ -102,10 +99,10 @@ export default function SettingsScreen() {
             }}
           >
             <View style={styles.settingContent}>
-              <Feather name="shield" size={20} color={theme.text} />
+              <ThemedText style={[styles.iconText, { color: theme.text }]}>🛡</ThemedText>
               <ThemedText style={styles.settingLabel}>Privacy Policy</ThemedText>
             </View>
-            <Feather name="chevron-right" size={20} color={theme.textTertiary} />
+            <ThemedText style={[styles.chevron, { color: theme.textTertiary }]}>›</ThemedText>
           </Pressable>
 
           <View
@@ -119,10 +116,10 @@ export default function SettingsScreen() {
             }}
           >
             <View style={styles.settingContent}>
-              <Feather name="file-text" size={20} color={theme.text} />
+              <ThemedText style={[styles.iconText, { color: theme.text }]}>📄</ThemedText>
               <ThemedText style={styles.settingLabel}>Terms of Service</ThemedText>
             </View>
-            <Feather name="chevron-right" size={20} color={theme.textTertiary} />
+            <ThemedText style={[styles.chevron, { color: theme.textTertiary }]}>›</ThemedText>
           </Pressable>
         </View>
       </View>
@@ -176,9 +173,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: Spacing.md,
   },
+  iconText: {
+    fontSize: 20,
+    width: 24,
+    textAlign: "center",
+  },
+  chevron: {
+    fontSize: 24,
+    fontWeight: "300",
+  },
   divider: {
     height: 1,
-    marginLeft: Spacing.lg + 20 + Spacing.md,
+    marginLeft: Spacing.lg + 24 + Spacing.md,
   },
   footer: {
     alignItems: "center",

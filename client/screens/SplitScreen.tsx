@@ -359,7 +359,7 @@ export default function SplitScreen() {
               { backgroundColor: theme.warning + "20" },
             ]}
           >
-            <Feather name="alert-triangle" size={16} color={theme.warning} />
+            <ThemedText style={[styles.warningIcon, { color: theme.warning }]}>⚠</ThemedText>
             <ThemedText
               style={[styles.warningText, { color: theme.warning }]}
             >
@@ -380,7 +380,7 @@ export default function SplitScreen() {
               { backgroundColor: isDark ? Colors.dark.accent : Colors.light.accent },
             ]}
           >
-            <Feather name="user-plus" size={18} color="#FFFFFF" />
+            <ThemedText style={styles.addPersonIcon}>+</ThemedText>
             <ThemedText style={styles.addPersonText}>Add Person</ThemedText>
           </Pressable>
 
@@ -432,11 +432,7 @@ export default function SplitScreen() {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Feather
-                name="file-text"
-                size={48}
-                color={theme.textTertiary}
-              />
+              <ThemedText style={[styles.emptyIcon, { color: theme.textTertiary }]}>📄</ThemedText>
               <ThemedText
                 style={[styles.emptyText, { color: theme.textSecondary }]}
               >
@@ -579,6 +575,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: Spacing.sm,
   },
+  addPersonIcon: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "600",
+  },
   peopleRow: {
     flexDirection: "row",
     paddingBottom: Spacing.sm,
@@ -591,6 +592,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     fontSize: 16,
   },
+  emptyIcon: {
+    fontSize: 48,
+  },
   warningBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -602,6 +606,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: Spacing.sm,
     fontSize: 14,
+  },
+  warningIcon: {
+    fontSize: 16,
   },
   floatingButtonContainer: {
     position: "absolute",

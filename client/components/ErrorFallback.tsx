@@ -53,7 +53,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <Feather name="alert-circle" size={20} color={theme.text} />
+          <ThemedText style={[styles.alertIcon, { color: theme.text }]}>!</ThemedText>
         </Pressable>
       ) : null}
 
@@ -106,7 +106,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                     { opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
-                  <Feather name="x" size={24} color={theme.text} />
+                  <ThemedText style={[styles.closeIcon, { color: theme.text }]}>✕</ThemedText>
                 </Pressable>
               </View>
 
@@ -242,5 +242,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     width: "100%",
+  },
+  alertIcon: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  closeIcon: {
+    fontSize: 20,
+    fontWeight: "400",
   },
 });

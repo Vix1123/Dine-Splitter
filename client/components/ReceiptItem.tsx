@@ -92,7 +92,7 @@ export function ReceiptItem({
     if (isFullyAllocated) {
       return (
         <View style={styles.allocatedBadge}>
-          <Feather name="check" size={16} color={theme.primary} />
+          <ThemedText style={[styles.checkIcon, { color: theme.primary }]}>✓</ThemedText>
         </View>
       );
     }
@@ -111,7 +111,7 @@ export function ReceiptItem({
           ]}
         >
           {selectedQuantity > 0 ? (
-            <Feather name="check" size={14} color="#FFFFFF" />
+            <ThemedText style={styles.checkIconSmall}>✓</ThemedText>
           ) : null}
         </Pressable>
       );
@@ -264,5 +264,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  checkIcon: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  checkIconSmall: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

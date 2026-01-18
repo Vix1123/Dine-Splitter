@@ -106,7 +106,7 @@ export function SummaryPanel({
             </ThemedText>
           </View>
           <Animated.View style={chevronStyle}>
-            <Feather name="chevron-down" size={20} color={theme.text} />
+            <ThemedText style={[styles.chevron, { color: theme.text }]}>▼</ThemedText>
           </Animated.View>
         </View>
       </Pressable>
@@ -309,5 +309,9 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 14,
+  },
+  chevron: {
+    fontSize: 12,
+    fontWeight: "400",
   },
 });

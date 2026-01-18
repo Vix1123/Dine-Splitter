@@ -57,7 +57,7 @@ export default function RootStackNavigator() {
               hitSlop={8}
               style={styles.headerButton}
             >
-              <Feather name="settings" size={22} color={theme.text} />
+              <ThemedText style={[styles.iconText, { color: theme.text }]}>⚙</ThemedText>
             </Pressable>
           ),
           headerRight: () => (
@@ -72,7 +72,7 @@ export default function RootStackNavigator() {
               hitSlop={8}
               style={styles.headerButton}
             >
-              <Feather name="share" size={22} color={theme.textTertiary} />
+              <ThemedText style={[styles.iconText, { color: theme.textTertiary }]}>↗</ThemedText>
             </Pressable>
           ),
         })}
@@ -104,5 +104,8 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: Spacing.xs,
+  },
+  iconText: {
+    fontSize: 22,
   },
 });

@@ -117,7 +117,7 @@ export function ReceiptCapture({
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <Feather name="loader" size={40} color={theme.textSecondary} />
+            <ThemedText style={[styles.captureIcon, { color: theme.textSecondary }]}>⟳</ThemedText>
             <ThemedText
               style={[styles.captureText, { color: theme.textSecondary }]}
             >
@@ -126,7 +126,7 @@ export function ReceiptCapture({
           </View>
         ) : (
           <>
-            <Feather name="camera" size={40} color={theme.textSecondary} />
+            <ThemedText style={[styles.captureIcon, { color: theme.textSecondary }]}>📷</ThemedText>
             <ThemedText
               style={[styles.captureText, { color: theme.textSecondary }]}
             >
@@ -149,7 +149,7 @@ export function ReceiptCapture({
             { backgroundColor: theme.backgroundSecondary },
           ]}
         >
-          <Feather name="image" size={18} color={theme.text} />
+          <ThemedText style={[styles.galleryIcon, { color: theme.text }]}>🖼</ThemedText>
           <ThemedText style={styles.galleryText}>
             Upload from gallery
           </ThemedText>
@@ -239,5 +239,11 @@ const styles = StyleSheet.create({
   retakeIcon: {
     fontSize: 18,
     fontWeight: "600",
+  },
+  captureIcon: {
+    fontSize: 40,
+  },
+  galleryIcon: {
+    fontSize: 18,
   },
 });
