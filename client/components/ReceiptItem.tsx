@@ -132,9 +132,11 @@ export function ReceiptItem({
             },
           ]}
         >
-          <Feather name="minus" size={16} color={theme.text} />
+          <ThemedText style={[styles.stepperIcon, { color: theme.text }]}>-</ThemedText>
         </Pressable>
-        <ThemedText style={styles.stepperValue}>{selectedQuantity}</ThemedText>
+        <ThemedText style={styles.stepperValue}>
+          {selectedQuantity}/{unallocated}
+        </ThemedText>
         <Pressable
           onPress={handleIncrement}
           style={[
@@ -148,7 +150,7 @@ export function ReceiptItem({
             },
           ]}
         >
-          <Feather name="plus" size={16} color={theme.text} />
+          <ThemedText style={[styles.stepperIcon, { color: theme.text }]}>+</ThemedText>
         </Pressable>
       </View>
     );
@@ -248,8 +250,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginHorizontal: Spacing.sm,
-    minWidth: 24,
+    minWidth: 40,
     textAlign: "center",
+  },
+  stepperIcon: {
+    fontSize: 20,
+    fontWeight: "700",
+    lineHeight: 24,
   },
   allocatedBadge: {
     width: 32,

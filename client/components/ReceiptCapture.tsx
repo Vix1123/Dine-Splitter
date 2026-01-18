@@ -90,7 +90,7 @@ export function ReceiptCapture({
               { backgroundColor: theme.backgroundSecondary },
             ]}
           >
-            <Feather name="refresh-cw" size={18} color={theme.text} />
+            <ThemedText style={[styles.retakeIcon, { color: theme.text }]}>↻</ThemedText>
             <ThemedText style={styles.retakeText}>Retake</ThemedText>
           </Pressable>
         </View>
@@ -235,5 +235,9 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
     fontSize: 14,
     fontWeight: "500",
+  },
+  retakeIcon: {
+    fontSize: 18,
+    fontWeight: "600",
   },
 });
