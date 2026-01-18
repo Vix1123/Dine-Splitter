@@ -336,7 +336,7 @@ export default function SplitScreen() {
           styles.scrollContent,
           {
             paddingTop: headerHeight + Spacing.xl,
-            paddingBottom: selectedCount > 0 ? 100 : Spacing["3xl"],
+            paddingBottom: items.length > 0 ? 200 : Spacing["3xl"],
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -447,26 +447,34 @@ export default function SplitScreen() {
         </View>
 
         {items.length > 0 ? (
-          <>
-            <View style={styles.section}>
-              <TipSelector
-                tipPercentage={tipPercentage}
-                onTipChange={setTipPercentage}
-              />
-            </View>
-
-            <View style={styles.section}>
-              <SummaryPanel
-                items={items}
-                people={people}
-                tipPercentage={tipPercentage}
-                currencySymbol={currencySymbol}
-                billTotal={billTotal}
-              />
-            </View>
-          </>
+          <View style={styles.section}>
+            <TipSelector
+              tipPercentage={tipPercentage}
+              onTipChange={setTipPercentage}
+            />
+          </View>
         ) : null}
       </ScrollView>
+
+      {items.length > 0 ? (
+        <View
+          style={[
+            styles.floatingSummaryContainer,
+            { 
+              backgroundColor: theme.backgroundRoot,
+              paddingBottom: selectedCount > 0 ? 80 + insets.bottom : insets.bottom + Spacing.md,
+            },
+          ]}
+        >
+          <SummaryPanel
+            items={items}
+            people={people}
+            tipPercentage={tipPercentage}
+            currencySymbol={currencySymbol}
+            billTotal={billTotal}
+          />
+        </View>
+      ) : null}
 
       {selectedCount > 0 ? (
         <Animated.View
@@ -616,5 +624,15 @@ const styles = StyleSheet.create({
   floatingButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  floatingSummaryContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
   },
 });
