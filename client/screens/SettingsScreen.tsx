@@ -1,26 +1,35 @@
-import React from "react";
-import { StyleSheet, View, Switch, Pressable, Linking, Platform } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { StyleSheet, View, Switch, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { useThemeToggle } from "@/hooks/useColorScheme";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
+const THEME_KEY = "@dinesplit:theme";
+
 export default function SettingsScreen() {
-  const { theme } = useTheme();
-  const { isDark, toggleTheme } = useThemeToggle();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
+  const [darkMode, setDarkMode] = useState(isDark);
 
-  const handleToggle = () => {
+  useEffect(() => {
+    setDarkMode(isDark);
+  }, [isDark]);
+
+  const handleToggle = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleTheme();
-  };
+    const newValue = !darkMode;
+    setDarkMode(newValue);
+    const newTheme = newValue ? "dark" : "light";
+    await AsyncStorage.setItem(THEME_KEY, newTheme);
+  }, [darkMode]);
 
   return (
     <KeyboardAwareScrollViewCompat
@@ -47,14 +56,14 @@ export default function SettingsScreen() {
         >
           <View style={styles.settingContent}>
             <Feather
-              name={isDark ? "moon" : "sun"}
+              name={darkMode ? "moon" : "sun"}
               size={20}
               color={theme.text}
             />
             <ThemedText style={styles.settingLabel}>Dark Mode</ThemedText>
           </View>
           <Switch
-            value={isDark}
+            value={darkMode}
             onValueChange={handleToggle}
             trackColor={{ false: theme.border, true: theme.primary }}
             thumbColor="#FFFFFF"
