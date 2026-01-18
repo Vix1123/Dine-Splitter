@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View, Modal, Pressable, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useAnimatedStyle,
@@ -89,6 +90,7 @@ export function AssignmentModal({
   personTotals,
 }: AssignmentModalProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal
@@ -100,7 +102,13 @@ export function AssignmentModal({
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View
-          style={[styles.sheet, { backgroundColor: theme.backgroundRoot }]}
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: theme.backgroundRoot,
+              paddingBottom: Math.max(insets.bottom, Spacing.xl),
+            },
+          ]}
         >
           <View style={styles.handle} />
           <View style={styles.header}>
@@ -108,12 +116,16 @@ export function AssignmentModal({
               Assign {selectedCount} item{selectedCount !== 1 ? "s" : ""} to
             </ThemedText>
             <Pressable onPress={onClose} hitSlop={8}>
-              <ThemedText style={[styles.closeButton, { color: theme.text }]}>✕</ThemedText>
+              <ThemedText style={[styles.closeButton, { color: theme.text }]}>
+                ✕
+              </ThemedText>
             </Pressable>
           </View>
           {people.length === 0 ? (
             <View style={styles.emptyState}>
-              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.emptyText, { color: theme.textSecondary }]}
+              >
                 No people added yet. Add people first to assign items.
               </ThemedText>
             </View>
@@ -121,6 +133,7 @@ export function AssignmentModal({
             <ScrollView
               style={styles.scrollView}
               contentContainerStyle={styles.grid}
+              showsVerticalScrollIndicator={true}
             >
               {people.map((person) => (
                 <PersonCard
@@ -152,7 +165,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing["4xl"],
     paddingTop: Spacing.md,
     maxHeight: "60%",
     minHeight: 200,
@@ -180,13 +192,13 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 0,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.sm,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   personCard: {
     width: "48%",

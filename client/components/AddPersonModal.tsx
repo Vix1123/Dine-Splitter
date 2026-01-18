@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -27,14 +28,16 @@ export function AddPersonModal({
   onAdd,
 }: AddPersonModalProps) {
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [visible]);
 
@@ -65,13 +68,21 @@ export function AddPersonModal({
       >
         <Pressable style={styles.backdrop} onPress={handleClose} />
         <View
-          style={[styles.sheet, { backgroundColor: theme.backgroundRoot }]}
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: theme.backgroundRoot,
+              paddingBottom: Math.max(insets.bottom, Spacing.xl),
+            },
+          ]}
         >
           <View style={styles.handle} />
           <View style={styles.header}>
             <ThemedText style={styles.title}>Add Person</ThemedText>
             <Pressable onPress={handleClose} hitSlop={8}>
-              <ThemedText style={[styles.closeButton, { color: theme.text }]}>✕</ThemedText>
+              <ThemedText style={[styles.closeButton, { color: theme.text }]}>
+                ✕
+              </ThemedText>
             </Pressable>
           </View>
           <TextInput
@@ -88,16 +99,21 @@ export function AddPersonModal({
             placeholderTextColor={theme.textTertiary}
             value={name}
             onChangeText={setName}
-            autoFocus
+            autoCapitalize="words"
             returnKeyType="done"
             onSubmitEditing={handleAdd}
+            blurOnSubmit={false}
           />
           <Button
             onPress={handleAdd}
             disabled={!name.trim()}
             style={[
               styles.addButton,
-              { backgroundColor: isDark ? Colors.dark.accent : Colors.light.accent },
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.accent
+                  : Colors.light.accent,
+              },
             ]}
           >
             Add Person
@@ -121,7 +137,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing["4xl"],
     paddingTop: Spacing.md,
   },
   handle: {

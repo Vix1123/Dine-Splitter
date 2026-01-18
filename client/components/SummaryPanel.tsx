@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { StyleSheet, View, Pressable, ScrollView, Modal } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -30,16 +29,20 @@ export function SummaryPanel({
   billTotal,
 }: SummaryPanelProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(false);
   const rotation = useSharedValue(0);
-  const height = useSharedValue(0);
 
   const { allocatedTotal, personSummaries } = useMemo(() => {
     const summaries: PersonSummary[] = [];
     let allocated = 0;
 
     people.forEach((person) => {
-      const personItems: { description: string; quantity: number; price: number }[] = [];
+      const personItems: {
+        description: string;
+        quantity: number;
+        price: number;
+      }[] = [];
       let subtotal = 0;
 
       items.forEach((item) => {
@@ -86,138 +89,196 @@ export function SummaryPanel({
   const statusColor = isComplete ? theme.success : theme.warning;
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: theme.backgroundDefault, borderColor: statusColor },
-      ]}
-    >
-      <Pressable onPress={toggleExpand} style={styles.header}>
-        <View style={styles.headerLeft}>
-          <ThemedText style={styles.title}>Summary</ThemedText>
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-        </View>
-        <View style={styles.headerRight}>
-          <View style={styles.totalsPreview}>
-            <ThemedText style={[styles.totalLabel, { color: theme.textSecondary }]}>
-              {currencySymbol}
-              {allocatedTotal.toFixed(2)} / {currencySymbol}
-              {billTotal.toFixed(2)}
-            </ThemedText>
+    <>
+      <Pressable
+        onPress={toggleExpand}
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.backgroundDefault,
+            borderColor: statusColor,
+          },
+        ]}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <ThemedText style={styles.title}>Summary</ThemedText>
+            <View
+              style={[styles.statusDot, { backgroundColor: statusColor }]}
+            />
           </View>
-          <Animated.View style={chevronStyle}>
-            <ThemedText style={[styles.chevron, { color: theme.text }]}>▼</ThemedText>
-          </Animated.View>
+          <View style={styles.headerRight}>
+            <View style={styles.totalsPreview}>
+              <ThemedText
+                style={[styles.totalLabel, { color: theme.textSecondary }]}
+              >
+                {currencySymbol}
+                {allocatedTotal.toFixed(2)} / {currencySymbol}
+                {billTotal.toFixed(2)}
+              </ThemedText>
+            </View>
+            <Animated.View style={chevronStyle}>
+              <ThemedText style={[styles.chevron, { color: theme.text }]}>
+                ▼
+              </ThemedText>
+            </Animated.View>
+          </View>
         </View>
       </Pressable>
 
-      {isExpanded ? (
-        <View style={styles.expandedContent}>
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-          <View style={styles.summaryRow}>
-            <ThemedText style={{ color: theme.textSecondary }}>
-              Bill Total
-            </ThemedText>
-            <ThemedText style={styles.summaryValue}>
-              {currencySymbol}
-              {billTotal.toFixed(2)}
-            </ThemedText>
-          </View>
-          <View style={styles.summaryRow}>
-            <ThemedText style={{ color: theme.textSecondary }}>
-              Allocated
-            </ThemedText>
-            <ThemedText style={styles.summaryValue}>
-              {currencySymbol}
-              {allocatedTotal.toFixed(2)}
-            </ThemedText>
-          </View>
-          <View style={styles.summaryRow}>
-            <ThemedText
-              style={{ color: isComplete ? theme.success : theme.warning }}
-            >
-              Outstanding
-            </ThemedText>
-            <ThemedText
-              style={[
-                styles.summaryValue,
-                { color: isComplete ? theme.success : theme.warning },
-              ]}
-            >
-              {currencySymbol}
-              {outstanding.toFixed(2)}
-            </ThemedText>
-          </View>
-
-          <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-          {personSummaries.map((summary) => (
-            <View key={summary.person.id} style={styles.personSummary}>
-              <View style={styles.personHeader}>
+      <Modal
+        visible={isExpanded}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsExpanded(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setIsExpanded(false)}
+          />
+          <View
+            style={[
+              styles.modalSheet,
+              {
+                backgroundColor: theme.backgroundRoot,
+                paddingBottom: Math.max(insets.bottom, Spacing.xl),
+              },
+            ]}
+          >
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <View style={styles.headerLeft}>
+                <ThemedText style={styles.modalTitle}>Summary</ThemedText>
                 <View
-                  style={[
-                    styles.personDot,
-                    {
-                      backgroundColor:
-                        PersonColors[
-                          summary.person.colorIndex % PersonColors.length
-                        ],
-                    },
-                  ]}
+                  style={[styles.statusDot, { backgroundColor: statusColor }]}
                 />
-                <ThemedText style={styles.personName}>
-                  {summary.person.name}
+              </View>
+              <Pressable onPress={() => setIsExpanded(false)} hitSlop={8}>
+                <ThemedText
+                  style={[styles.closeButton, { color: theme.text }]}
+                >
+                  ✕
                 </ThemedText>
-                <ThemedText style={[styles.personTotal, { color: theme.primary }]}>
+              </Pressable>
+            </View>
+
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={true}
+            >
+              <View style={styles.summaryRow}>
+                <ThemedText style={{ color: theme.textSecondary }}>
+                  Bill Total
+                </ThemedText>
+                <ThemedText style={styles.summaryValue}>
                   {currencySymbol}
-                  {summary.total.toFixed(2)}
+                  {billTotal.toFixed(2)}
                 </ThemedText>
               </View>
-              {summary.items.map((item, idx) => (
-                <View key={idx} style={styles.itemRow}>
-                  <ThemedText
-                    style={[styles.itemDesc, { color: theme.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {item.quantity > 1 ? `${item.quantity}x ` : ""}
-                    {item.description}
-                  </ThemedText>
-                  <ThemedText
-                    style={[styles.itemPrice, { color: theme.textSecondary }]}
-                  >
-                    {currencySymbol}
-                    {item.price.toFixed(2)}
-                  </ThemedText>
+              <View style={styles.summaryRow}>
+                <ThemedText style={{ color: theme.textSecondary }}>
+                  Allocated
+                </ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  {currencySymbol}
+                  {allocatedTotal.toFixed(2)}
+                </ThemedText>
+              </View>
+              <View style={styles.summaryRow}>
+                <ThemedText
+                  style={{
+                    color: isComplete ? theme.success : theme.warning,
+                  }}
+                >
+                  Outstanding
+                </ThemedText>
+                <ThemedText
+                  style={[
+                    styles.summaryValue,
+                    { color: isComplete ? theme.success : theme.warning },
+                  ]}
+                >
+                  {currencySymbol}
+                  {outstanding.toFixed(2)}
+                </ThemedText>
+              </View>
+
+              <View
+                style={[styles.divider, { backgroundColor: theme.border }]}
+              />
+
+              {personSummaries.map((summary) => (
+                <View key={summary.person.id} style={styles.personSummary}>
+                  <View style={styles.personHeader}>
+                    <View
+                      style={[
+                        styles.personDot,
+                        {
+                          backgroundColor:
+                            PersonColors[
+                              summary.person.colorIndex % PersonColors.length
+                            ],
+                        },
+                      ]}
+                    />
+                    <ThemedText style={styles.personName}>
+                      {summary.person.name}
+                    </ThemedText>
+                    <ThemedText
+                      style={[styles.personTotal, { color: theme.primary }]}
+                    >
+                      {currencySymbol}
+                      {summary.total.toFixed(2)}
+                    </ThemedText>
+                  </View>
+                  {summary.items.map((item, idx) => (
+                    <View key={idx} style={styles.itemRow}>
+                      <ThemedText
+                        style={[styles.itemDesc, { color: theme.textSecondary }]}
+                        numberOfLines={1}
+                      >
+                        {item.quantity > 1 ? `${item.quantity}x ` : ""}
+                        {item.description}
+                      </ThemedText>
+                      <ThemedText
+                        style={[styles.itemPrice, { color: theme.textSecondary }]}
+                      >
+                        {currencySymbol}
+                        {item.price.toFixed(2)}
+                      </ThemedText>
+                    </View>
+                  ))}
+                  <View style={styles.itemRow}>
+                    <ThemedText
+                      style={[styles.itemDesc, { color: theme.textTertiary }]}
+                    >
+                      Subtotal
+                    </ThemedText>
+                    <ThemedText style={{ color: theme.textTertiary }}>
+                      {currencySymbol}
+                      {summary.subtotal.toFixed(2)}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.itemRow}>
+                    <ThemedText
+                      style={[styles.itemDesc, { color: theme.textTertiary }]}
+                    >
+                      Tip ({tipPercentage}%)
+                    </ThemedText>
+                    <ThemedText style={{ color: theme.textTertiary }}>
+                      {currencySymbol}
+                      {summary.tip.toFixed(2)}
+                    </ThemedText>
+                  </View>
                 </View>
               ))}
-              <View style={styles.itemRow}>
-                <ThemedText
-                  style={[styles.itemDesc, { color: theme.textTertiary }]}
-                >
-                  Subtotal
-                </ThemedText>
-                <ThemedText style={{ color: theme.textTertiary }}>
-                  {currencySymbol}
-                  {summary.subtotal.toFixed(2)}
-                </ThemedText>
-              </View>
-              <View style={styles.itemRow}>
-                <ThemedText
-                  style={[styles.itemDesc, { color: theme.textTertiary }]}
-                >
-                  Tip ({tipPercentage}%)
-                </ThemedText>
-                <ThemedText style={{ color: theme.textTertiary }}>
-                  {currencySymbol}
-                  {summary.tip.toFixed(2)}
-                </ThemedText>
-              </View>
-            </View>
-          ))}
+            </ScrollView>
+          </View>
         </View>
-      ) : null}
-    </View>
+      </Modal>
+    </>
   );
 }
 
@@ -257,9 +318,52 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 14,
   },
-  expandedContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
+  chevron: {
+    fontSize: 12,
+    fontWeight: "400",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalSheet: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    maxHeight: "80%",
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: "#D1D5DB",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: Spacing.lg,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.lg,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  closeButton: {
+    fontSize: 20,
+    fontWeight: "400",
+  },
+  scrollView: {
+    flexGrow: 0,
+  },
+  scrollContent: {
+    paddingBottom: Spacing.md,
   },
   divider: {
     height: 1,
@@ -309,9 +413,5 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 14,
-  },
-  chevron: {
-    fontSize: 12,
-    fontWeight: "400",
   },
 });
