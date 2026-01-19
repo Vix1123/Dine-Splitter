@@ -139,11 +139,35 @@ async function processReceiptWithTabscanner(
 
               console.log("Line items found:", lineItems.length);
 
-              const items = lineItems.map((item: TabscannerItem, index: number) => ({
-                description: item.desc || item.description || `Item ${index + 1}`,
-                price: item.lineTotal || item.price || 0,
-                quantity: item.qty || item.quantity || 1,
-              }));
+              const items = lineItems.map((item: TabscannerItem, index: number) => {
+                let description = item.desc || item.description || `Item ${index + 1}`;
+                let quantity = item.qty || item.quantity || 1;
+                
+                // Clean up description - remove leading quantity if present (e.g., "2 Chai Latte" -> "Chai Latte")
+                const leadingQtyMatch = description.match(/^(\d+)\s+(.+)$/);
+                if (leadingQtyMatch) {
+                  const leadingNum = parseInt(leadingQtyMatch[1], 10);
+                  // If the OCR quantity is suspiciously high and starts with the same digit as leading number,
+                  // it might have concatenated two numbers (e.g., "1 6 Wings" became qty=16)
+                  if (quantity > 10 && quantity.toString().startsWith(leadingNum.toString())) {
+                    // Extract proper quantity from the concatenated number
+                    quantity = leadingNum;
+                  }
+                  // Clean description to remove the leading quantity
+                  description = leadingQtyMatch[2];
+                }
+                
+                // If quantity is still unreasonably high (> 20), default to 1
+                if (quantity > 20) {
+                  quantity = 1;
+                }
+                
+                return {
+                  description,
+                  price: item.lineTotal || item.price || 0,
+                  quantity,
+                };
+              });
 
               const totalValue = resultData.total || resultData.subTotal || 0;
               const total = typeof totalValue === "string" ? parseFloat(totalValue) : totalValue;
@@ -165,11 +189,30 @@ async function processReceiptWithTabscanner(
             const resultData = response.result;
             const lineItems = resultData.lineItems || [];
 
-            const items = lineItems.map((item: TabscannerItem, index: number) => ({
-              description: item.desc || item.description || `Item ${index + 1}`,
-              price: item.lineTotal || item.price || 0,
-              quantity: item.qty || item.quantity || 1,
-            }));
+            const items = lineItems.map((item: TabscannerItem, index: number) => {
+              let description = item.desc || item.description || `Item ${index + 1}`;
+              let quantity = item.qty || item.quantity || 1;
+              
+              // Clean up description - remove leading quantity if present
+              const leadingQtyMatch = description.match(/^(\d+)\s+(.+)$/);
+              if (leadingQtyMatch) {
+                const leadingNum = parseInt(leadingQtyMatch[1], 10);
+                if (quantity > 10 && quantity.toString().startsWith(leadingNum.toString())) {
+                  quantity = leadingNum;
+                }
+                description = leadingQtyMatch[2];
+              }
+              
+              if (quantity > 20) {
+                quantity = 1;
+              }
+              
+              return {
+                description,
+                price: item.lineTotal || item.price || 0,
+                quantity,
+              };
+            });
 
             const totalValue = resultData.total || resultData.subTotal || 0;
             const total = typeof totalValue === "string" ? parseFloat(totalValue) : totalValue;
