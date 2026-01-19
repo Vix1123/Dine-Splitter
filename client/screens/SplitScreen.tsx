@@ -458,10 +458,50 @@ export default function SplitScreen() {
             styles.floatingSummaryContainer,
             { 
               backgroundColor: theme.backgroundRoot,
-              paddingBottom: selectedCount > 0 ? 80 + insets.bottom : insets.bottom + Spacing.md,
+              paddingBottom: insets.bottom + Spacing.md,
             },
           ]}
         >
+          {selectedCount > 0 ? (
+            <Animated.View
+              entering={FadeInUp}
+              exiting={FadeOutDown}
+              style={styles.assignButtonWrapper}
+            >
+              <AnimatedPressable
+                onPress={() =>
+                  people.length > 0
+                    ? setShowAssignment(true)
+                    : Haptics.notificationAsync(
+                        Haptics.NotificationFeedbackType.Warning
+                      )
+                }
+                onPressIn={handleAssignButtonPressIn}
+                onPressOut={handleAssignButtonPressOut}
+                disabled={!canAssign}
+                style={[
+                  styles.floatingButton,
+                  {
+                    backgroundColor: canAssign
+                      ? theme.primary
+                      : theme.backgroundSecondary,
+                  },
+                  assignButtonAnimatedStyle,
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.floatingButtonText,
+                    { color: canAssign ? "#FFFFFF" : theme.textSecondary },
+                  ]}
+                >
+                  {people.length === 0
+                    ? "Add people above to assign items"
+                    : `Assign ${selectedCount} item${selectedCount !== 1 ? "s" : ""}`}
+                </ThemedText>
+              </AnimatedPressable>
+            </Animated.View>
+          ) : null}
           <SummaryPanel
             items={items}
             people={people}
@@ -470,50 +510,6 @@ export default function SplitScreen() {
             billTotal={billTotal}
           />
         </View>
-      ) : null}
-
-      {selectedCount > 0 ? (
-        <Animated.View
-          entering={FadeInUp}
-          exiting={FadeOutDown}
-          style={[
-            styles.floatingButtonContainer,
-            { paddingBottom: insets.bottom + Spacing.lg },
-          ]}
-        >
-          <AnimatedPressable
-            onPress={() =>
-              people.length > 0
-                ? setShowAssignment(true)
-                : Haptics.notificationAsync(
-                    Haptics.NotificationFeedbackType.Warning
-                  )
-            }
-            onPressIn={handleAssignButtonPressIn}
-            onPressOut={handleAssignButtonPressOut}
-            disabled={!canAssign}
-            style={[
-              styles.floatingButton,
-              {
-                backgroundColor: canAssign
-                  ? theme.primary
-                  : theme.backgroundSecondary,
-              },
-              assignButtonAnimatedStyle,
-            ]}
-          >
-            <ThemedText
-              style={[
-                styles.floatingButtonText,
-                { color: canAssign ? "#FFFFFF" : theme.textSecondary },
-              ]}
-            >
-              {people.length === 0
-                ? "Add people above to assign items"
-                : `Assign ${selectedCount} item${selectedCount !== 1 ? "s" : ""}`}
-            </ThemedText>
-          </AnimatedPressable>
-        </Animated.View>
       ) : null}
 
       <AddPersonModal
@@ -610,12 +606,8 @@ const styles = StyleSheet.create({
   warningIcon: {
     fontSize: 16,
   },
-  floatingButtonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: Spacing.lg,
+  assignButtonWrapper: {
+    marginBottom: Spacing.md,
   },
   floatingButton: {
     height: Spacing.buttonHeight,
