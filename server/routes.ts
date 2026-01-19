@@ -143,22 +143,28 @@ async function processReceiptWithTabscanner(
                 let description = item.desc || item.description || `Item ${index + 1}`;
                 let quantity = item.qty || item.quantity || 1;
                 
-                // Clean up description - remove leading quantity if present (e.g., "2 Chai Latte" -> "Chai Latte")
+                // Handle OCR concatenation errors (e.g., "1 6 Wings" becomes qty=16, desc="Wings" or "6 Wings")
+                // Check if description starts with a number that might be part of a merged quantity
                 const leadingQtyMatch = description.match(/^(\d+)\s+(.+)$/);
                 if (leadingQtyMatch) {
                   const leadingNum = parseInt(leadingQtyMatch[1], 10);
-                  // If the OCR quantity is suspiciously high and starts with the same digit as leading number,
-                  // it might have concatenated two numbers (e.g., "1 6 Wings" became qty=16)
-                  if (quantity > 10 && quantity.toString().startsWith(leadingNum.toString())) {
-                    // Extract proper quantity from the concatenated number
-                    quantity = leadingNum;
+                  const qtyStr = quantity.toString();
+                  
+                  // Case 1: qty=16 with desc="6 Wings" - the "6" in description matches end of qty "16"
+                  // This means actual qty is 1 (from qty string minus the leading number)
+                  if (quantity > 9 && qtyStr.endsWith(leadingNum.toString())) {
+                    const actualQtyStr = qtyStr.slice(0, -leadingNum.toString().length);
+                    quantity = actualQtyStr ? parseInt(actualQtyStr, 10) : 1;
                   }
-                  // Clean description to remove the leading quantity
+                  // Case 2: qty=2 with desc="2 Chai Latte" - quantity is correct, just clean description
+                  // (no change to quantity needed)
+                  
+                  // Clean description to remove the leading quantity/number
                   description = leadingQtyMatch[2];
                 }
                 
-                // If quantity is still unreasonably high (> 20), default to 1
-                if (quantity > 20) {
+                // If quantity is 0 or unreasonably high (> 20), default to 1
+                if (quantity <= 0 || quantity > 20) {
                   quantity = 1;
                 }
                 
@@ -193,17 +199,20 @@ async function processReceiptWithTabscanner(
               let description = item.desc || item.description || `Item ${index + 1}`;
               let quantity = item.qty || item.quantity || 1;
               
-              // Clean up description - remove leading quantity if present
+              // Handle OCR concatenation errors
               const leadingQtyMatch = description.match(/^(\d+)\s+(.+)$/);
               if (leadingQtyMatch) {
                 const leadingNum = parseInt(leadingQtyMatch[1], 10);
-                if (quantity > 10 && quantity.toString().startsWith(leadingNum.toString())) {
-                  quantity = leadingNum;
+                const qtyStr = quantity.toString();
+                
+                if (quantity > 9 && qtyStr.endsWith(leadingNum.toString())) {
+                  const actualQtyStr = qtyStr.slice(0, -leadingNum.toString().length);
+                  quantity = actualQtyStr ? parseInt(actualQtyStr, 10) : 1;
                 }
                 description = leadingQtyMatch[2];
               }
               
-              if (quantity > 20) {
+              if (quantity <= 0 || quantity > 20) {
                 quantity = 1;
               }
               
