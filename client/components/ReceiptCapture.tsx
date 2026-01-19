@@ -67,18 +67,13 @@ export function ReceiptCapture({
           <Image source={{ uri: imageUri }} style={styles.thumbnail} />
           <View style={styles.receiptInfo}>
             {isLoading ? (
-              <View style={styles.analyzingContainer}>
+              <View style={[styles.analyzingContainer, { backgroundColor: theme.primary + "15" }]}>
                 <ThemedText style={[styles.analyzingIcon, { color: theme.primary }]}>
                   ⟳
                 </ThemedText>
-                <View>
-                  <ThemedText style={[styles.analyzingText, { color: theme.text }]}>
-                    Analyzing receipt...
-                  </ThemedText>
-                  <ThemedText style={[styles.analyzingSubtext, { color: theme.textTertiary }]}>
-                    This may take a moment
-                  </ThemedText>
-                </View>
+                <ThemedText style={[styles.analyzingText, { color: theme.primary }]}>
+                  Analyzing receipt...
+                </ThemedText>
               </View>
             ) : (
               <>
@@ -137,16 +132,11 @@ export function ReceiptCapture({
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ThemedText style={[styles.captureIcon, { color: theme.textSecondary }]}>⟳</ThemedText>
+            <ThemedText style={[styles.captureIcon, { color: theme.primary }]}>⟳</ThemedText>
             <ThemedText
-              style={[styles.captureText, { color: theme.textSecondary }]}
+              style={[styles.captureText, { color: theme.primary }]}
             >
               Analyzing receipt...
-            </ThemedText>
-            <ThemedText
-              style={[styles.loadingSubtext, { color: theme.textTertiary }]}
-            >
-              This may take a moment
             </ThemedText>
           </View>
         ) : (
@@ -196,10 +186,6 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: "center",
   },
-  loadingSubtext: {
-    fontSize: 14,
-    marginTop: Spacing.xs,
-  },
   captureText: {
     fontSize: 16,
     fontWeight: "600",
@@ -241,18 +227,17 @@ const styles = StyleSheet.create({
   analyzingContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
   analyzingIcon: {
-    fontSize: 24,
+    fontSize: 20,
     marginRight: Spacing.sm,
   },
   analyzingText: {
     fontSize: 16,
-    fontWeight: "600",
-  },
-  analyzingSubtext: {
-    fontSize: 13,
-    marginTop: 2,
+    fontWeight: "700",
   },
   currencyBadge: {
     alignSelf: "flex-start",
