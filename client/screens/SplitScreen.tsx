@@ -14,6 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import * as Sharing from "expo-sharing";
 import * as Clipboard from "expo-clipboard";
+import * as Localization from "expo-localization";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -33,7 +34,7 @@ import { TipSelector } from "@/components/TipSelector";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { useTheme } from "@/hooks/useTheme";
 import { Colors, Spacing, BorderRadius, PersonColors } from "@/constants/theme";
-import { getCurrencySymbol, formatCurrency } from "@/utils/currency";
+import { getCurrencySymbol, formatCurrency, getCurrencyFromRegion } from "@/utils/currency";
 import { apiRequest, getApiUrl } from "@/lib/query-client";
 import type {
   Person,
@@ -164,6 +165,12 @@ export default function SplitScreen() {
         name: filename,
         type,
       } as any);
+      
+      // Get device locale for currency fallback
+      const locales = Localization.getLocales();
+      const regionCode = locales[0]?.regionCode || null;
+      const fallbackCurrency = getCurrencyFromRegion(regionCode);
+      formData.append("fallbackCurrency", fallbackCurrency);
 
       const baseUrl = getApiUrl();
       const response = await fetch(new URL("/api/scan-receipt", baseUrl).href, {

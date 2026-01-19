@@ -84,7 +84,8 @@ async function pollForResult(token: string, apiKey: string, maxAttempts: number 
 async function processReceiptWithTabscanner(
   imageBuffer: Buffer,
   filename: string,
-  mimeType: string
+  mimeType: string,
+  fallbackCurrency: string = "USD"
 ): Promise<{
   items: { description: string; price: number; quantity: number }[];
   total: number;
@@ -228,7 +229,11 @@ async function processReceiptWithTabscanner(
                 serviceCharge = total - itemsSum;
               }
               
-              const currency = resultData.currencyCode || resultData.currency || "USD";
+              // Use currency from receipt, or fall back to device locale currency
+              const detectedCurrency = resultData.currencyCode || resultData.currency;
+              const currency = detectedCurrency && detectedCurrency.trim() !== "" 
+                ? detectedCurrency 
+                : fallbackCurrency;
 
               resolve({
                 items,
@@ -316,7 +321,11 @@ async function processReceiptWithTabscanner(
               serviceCharge = total - itemsSum;
             }
             
-            const currency = resultData.currencyCode || resultData.currency || "USD";
+            // Use currency from receipt, or fall back to device locale currency
+            const detectedCurrency = resultData.currencyCode || resultData.currency;
+            const currency = detectedCurrency && detectedCurrency.trim() !== "" 
+              ? detectedCurrency 
+              : fallbackCurrency;
 
             resolve({
               items,
@@ -401,10 +410,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (hasTabscannerKey) {
           try {
             console.log("Processing receipt with Tabscanner...");
+            const fallbackCurrency = req.body?.fallbackCurrency || "USD";
             const result = await processReceiptWithTabscanner(
               file.buffer,
               file.originalname,
-              file.mimetype
+              file.mimetype,
+              fallbackCurrency
             );
 
             console.log("Receipt processed:", JSON.stringify(result));
