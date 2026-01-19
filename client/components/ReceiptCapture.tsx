@@ -66,33 +66,53 @@ export function ReceiptCapture({
         <View style={styles.imageRow}>
           <Image source={{ uri: imageUri }} style={styles.thumbnail} />
           <View style={styles.receiptInfo}>
-            {currency ? (
-              <View
-                style={[
-                  styles.currencyBadge,
-                  { backgroundColor: theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText style={styles.currencyText}>{currency}</ThemedText>
+            {isLoading ? (
+              <View style={styles.analyzingContainer}>
+                <ThemedText style={[styles.analyzingIcon, { color: theme.primary }]}>
+                  ⟳
+                </ThemedText>
+                <View>
+                  <ThemedText style={[styles.analyzingText, { color: theme.text }]}>
+                    Analyzing receipt...
+                  </ThemedText>
+                  <ThemedText style={[styles.analyzingSubtext, { color: theme.textTertiary }]}>
+                    This may take a moment
+                  </ThemedText>
+                </View>
               </View>
-            ) : null}
-            {total !== null ? (
-              <ThemedText style={styles.totalText}>
-                {currencySymbol}
-                {total.toFixed(2)}
-              </ThemedText>
-            ) : null}
+            ) : (
+              <>
+                {currency ? (
+                  <View
+                    style={[
+                      styles.currencyBadge,
+                      { backgroundColor: theme.backgroundSecondary },
+                    ]}
+                  >
+                    <ThemedText style={styles.currencyText}>{currency}</ThemedText>
+                  </View>
+                ) : null}
+                {total !== null ? (
+                  <ThemedText style={styles.totalText}>
+                    {currencySymbol}
+                    {total.toFixed(2)}
+                  </ThemedText>
+                ) : null}
+              </>
+            )}
           </View>
-          <Pressable
-            onPress={onRetake}
-            style={[
-              styles.retakeButton,
-              { backgroundColor: theme.backgroundSecondary },
-            ]}
-          >
-            <ThemedText style={[styles.retakeIcon, { color: theme.text }]}>↻</ThemedText>
-            <ThemedText style={styles.retakeText}>Retake</ThemedText>
-          </Pressable>
+          {!isLoading ? (
+            <Pressable
+              onPress={onRetake}
+              style={[
+                styles.retakeButton,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <ThemedText style={[styles.retakeIcon, { color: theme.text }]}>↻</ThemedText>
+              <ThemedText style={styles.retakeText}>Retake</ThemedText>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );
@@ -217,6 +237,22 @@ const styles = StyleSheet.create({
   },
   receiptInfo: {
     flex: 1,
+  },
+  analyzingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  analyzingIcon: {
+    fontSize: 24,
+    marginRight: Spacing.sm,
+  },
+  analyzingText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  analyzingSubtext: {
+    fontSize: 13,
+    marginTop: 2,
   },
   currencyBadge: {
     alignSelf: "flex-start",
