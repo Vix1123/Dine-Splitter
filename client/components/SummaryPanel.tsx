@@ -19,6 +19,7 @@ interface SummaryPanelProps {
   tipPercentage: number;
   currencySymbol: string;
   billTotal: number;
+  serviceCharge?: number;
 }
 
 export function SummaryPanel({
@@ -27,6 +28,7 @@ export function SummaryPanel({
   tipPercentage,
   currencySymbol,
   billTotal,
+  serviceCharge = 0,
 }: SummaryPanelProps) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -170,13 +172,24 @@ export function SummaryPanel({
             >
               <View style={styles.summaryRow}>
                 <ThemedText style={{ color: theme.textSecondary }}>
-                  Bill Total
+                  Items Total
                 </ThemedText>
                 <ThemedText style={styles.summaryValue}>
                   {currencySymbol}
                   {billTotal.toFixed(2)}
                 </ThemedText>
               </View>
+              {serviceCharge > 0 ? (
+                <View style={styles.summaryRow}>
+                  <ThemedText style={{ color: theme.textSecondary }}>
+                    Service Charge
+                  </ThemedText>
+                  <ThemedText style={styles.summaryValue}>
+                    {currencySymbol}
+                    {serviceCharge.toFixed(2)}
+                  </ThemedText>
+                </View>
+              ) : null}
               <View style={styles.summaryRow}>
                 <ThemedText style={{ color: theme.textSecondary }}>
                   Allocated

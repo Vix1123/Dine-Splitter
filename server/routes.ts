@@ -23,6 +23,8 @@ interface TabscannerResult {
     subTotal?: number | string;
     currency?: string;
     currencyCode?: string;
+    tip?: number;
+    serviceCharges?: { amount: number }[];
   };
 }
 
@@ -86,6 +88,9 @@ async function processReceiptWithTabscanner(
 ): Promise<{
   items: { description: string; price: number; quantity: number }[];
   total: number;
+  subTotal: number;
+  serviceCharge: number;
+  tip: number;
   currency: string;
 }> {
   const apiKey = process.env.TABSCANNER_API_KEY;
@@ -203,15 +208,34 @@ async function processReceiptWithTabscanner(
 
               const totalValue = resultData.total || resultData.subTotal || 0;
               const total = typeof totalValue === "string" ? parseFloat(totalValue) : totalValue;
-              const calculatedTotal = total || items.reduce(
+              const subTotalValue = resultData.subTotal || 0;
+              const subTotal = typeof subTotalValue === "string" ? parseFloat(subTotalValue) : subTotalValue;
+              
+              const itemsSum = items.reduce(
                 (sum: number, item: { price: number }) => sum + item.price,
                 0
               );
+              
+              // Calculate service charge from difference between total and subtotal/items
+              let serviceCharge = 0;
+              const tip = resultData.tip || 0;
+              
+              // If total is higher than subtotal, the difference is likely service charge/gratuity
+              if (total > subTotal && subTotal > 0) {
+                serviceCharge = total - subTotal;
+              } else if (total > itemsSum) {
+                // If total is higher than items sum, calculate service charge
+                serviceCharge = total - itemsSum;
+              }
+              
               const currency = resultData.currencyCode || resultData.currency || "USD";
 
               resolve({
                 items,
-                total: calculatedTotal,
+                total,
+                subTotal: subTotal || itemsSum,
+                serviceCharge,
+                tip,
                 currency,
               });
             } catch (pollError) {
@@ -275,15 +299,31 @@ async function processReceiptWithTabscanner(
 
             const totalValue = resultData.total || resultData.subTotal || 0;
             const total = typeof totalValue === "string" ? parseFloat(totalValue) : totalValue;
-            const calculatedTotal = total || items.reduce(
+            const subTotalValue = resultData.subTotal || 0;
+            const subTotal = typeof subTotalValue === "string" ? parseFloat(subTotalValue) : subTotalValue;
+            
+            const itemsSum = items.reduce(
               (sum: number, item: { price: number }) => sum + item.price,
               0
             );
+            
+            let serviceCharge = 0;
+            const tip = resultData.tip || 0;
+            
+            if (total > subTotal && subTotal > 0) {
+              serviceCharge = total - subTotal;
+            } else if (total > itemsSum) {
+              serviceCharge = total - itemsSum;
+            }
+            
             const currency = resultData.currencyCode || resultData.currency || "USD";
 
             resolve({
               items,
-              total: calculatedTotal,
+              total,
+              subTotal: subTotal || itemsSum,
+              serviceCharge,
+              tip,
               currency,
             });
           } else {
@@ -309,6 +349,9 @@ async function processReceiptWithTabscanner(
 function generateMockReceiptData(): {
   items: { description: string; price: number; quantity: number }[];
   total: number;
+  subTotal: number;
+  serviceCharge: number;
+  tip: number;
   currency: string;
 } {
   const items = [
@@ -320,7 +363,7 @@ function generateMockReceiptData(): {
     { description: "Espresso", price: 3.50, quantity: 4 },
   ];
 
-  const total = items.reduce(
+  const subTotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
@@ -330,7 +373,10 @@ function generateMockReceiptData(): {
       ...item,
       price: item.price * item.quantity,
     })),
-    total,
+    total: subTotal,
+    subTotal,
+    serviceCharge: 0,
+    tip: 0,
     currency: "USD",
   };
 }

@@ -56,6 +56,7 @@ export default function SplitScreen() {
   const [tipPercentage, setTipPercentage] = useState(15);
   const [currency, setCurrency] = useState<string | null>(null);
   const [billTotal, setBillTotal] = useState(0);
+  const [serviceCharge, setServiceCharge] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [filterPerson, setFilterPerson] = useState<string | null>(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
@@ -193,10 +194,19 @@ export default function SplitScreen() {
 
         setItems(processedItems);
         setCurrency(data.currency || "USD");
-        setBillTotal(data.total || processedItems.reduce((sum, i) => sum + i.price, 0));
-
+        
         const itemsTotal = processedItems.reduce((sum, i) => sum + i.price, 0);
-        if (data.total && Math.abs(data.total - itemsTotal) / data.total > 0.05) {
+        const receiptServiceCharge = data.serviceCharge || 0;
+        const receiptTip = data.tip || 0;
+        
+        // Use subTotal for bill splitting (the actual items total)
+        // Service charge is tracked separately
+        setBillTotal(itemsTotal);
+        setServiceCharge(receiptServiceCharge + receiptTip);
+
+        // Compare items total against subTotal (not grand total which includes service charge)
+        const subTotal = data.subTotal || data.total || 0;
+        if (subTotal && Math.abs(subTotal - itemsTotal) / subTotal > 0.05) {
           setWarning(
             "Total doesn't match items. Try a clearer photo."
           );
@@ -223,6 +233,7 @@ export default function SplitScreen() {
     setItems([]);
     setCurrency(null);
     setBillTotal(0);
+    setServiceCharge(0);
     setSelectedQuantities({});
     setWarning(null);
   };
@@ -508,6 +519,7 @@ export default function SplitScreen() {
             tipPercentage={tipPercentage}
             currencySymbol={currencySymbol}
             billTotal={billTotal}
+            serviceCharge={serviceCharge}
           />
         </View>
       ) : null}
