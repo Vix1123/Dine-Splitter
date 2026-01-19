@@ -5,6 +5,7 @@ import https from "https";
 
 interface TabscannerItem {
   desc?: string;
+  descClean?: string;
   description?: string;
   lineTotal?: number;
   price?: number;
@@ -146,7 +147,8 @@ async function processReceiptWithTabscanner(
               console.log("Line items found:", lineItems.length);
 
               const items = lineItems.map((item: TabscannerItem, index: number) => {
-                let description = item.desc || item.description || `Item ${index + 1}`;
+                // Prefer descClean (full cleaned description) over desc (often truncated)
+                let description = item.descClean || item.desc || item.description || `Item ${index + 1}`;
                 let quantity = item.qty || item.quantity || 1;
                 const lineTotal = item.lineTotal || 0;
                 const unitPrice = item.price || 0;
@@ -251,7 +253,8 @@ async function processReceiptWithTabscanner(
             const lineItems = resultData.lineItems || [];
 
             const items = lineItems.map((item: TabscannerItem, index: number) => {
-              let description = item.desc || item.description || `Item ${index + 1}`;
+              // Prefer descClean (full cleaned description) over desc (often truncated)
+              let description = item.descClean || item.desc || item.description || `Item ${index + 1}`;
               let quantity = item.qty || item.quantity || 1;
               const lineTotal = item.lineTotal || 0;
               const unitPrice = item.price || 0;
