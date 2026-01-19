@@ -121,7 +121,12 @@ export function ReceiptCapture({
             <ThemedText
               style={[styles.captureText, { color: theme.textSecondary }]}
             >
-              Processing receipt...
+              Analyzing receipt...
+            </ThemedText>
+            <ThemedText
+              style={[styles.loadingSubtext, { color: theme.textTertiary }]}
+            >
+              This may take a moment
             </ThemedText>
           </View>
         ) : (
@@ -170,6 +175,10 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignItems: "center",
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    marginTop: Spacing.xs,
   },
   captureText: {
     fontSize: 16,
