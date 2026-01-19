@@ -142,6 +142,8 @@ async function processReceiptWithTabscanner(
               const items = lineItems.map((item: TabscannerItem, index: number) => {
                 let description = item.desc || item.description || `Item ${index + 1}`;
                 let quantity = item.qty || item.quantity || 1;
+                const lineTotal = item.lineTotal || 0;
+                const unitPrice = item.price || 0;
                 
                 // Handle OCR concatenation errors (e.g., "1 6 Wings" becomes qty=16, desc="Wings" or "6 Wings")
                 // Check if description starts with a number that might be part of a merged quantity
@@ -163,6 +165,29 @@ async function processReceiptWithTabscanner(
                   description = leadingQtyMatch[2];
                 }
                 
+                // Try to infer quantity from lineTotal / unitPrice when qty is missing or 0
+                // e.g., lineTotal=75, unitPrice=25 -> quantity should be 3
+                if ((quantity <= 0 || quantity === 1) && unitPrice > 0 && lineTotal > unitPrice) {
+                  const inferredQty = Math.round(lineTotal / unitPrice);
+                  if (inferredQty > 1 && inferredQty <= 20 && Math.abs(inferredQty * unitPrice - lineTotal) < 0.01) {
+                    quantity = inferredQty;
+                  }
+                }
+                
+                // Also check if description contains a price pattern like "25.00" and we can extract quantity
+                const priceInDescMatch = description.match(/^(.+?)\s+(\d+\.?\d*)$/);
+                if (priceInDescMatch && (quantity <= 0 || quantity === 1)) {
+                  const descPart = priceInDescMatch[1];
+                  const priceFromDesc = parseFloat(priceInDescMatch[2]);
+                  if (priceFromDesc > 0 && lineTotal > priceFromDesc) {
+                    const inferredQty = Math.round(lineTotal / priceFromDesc);
+                    if (inferredQty > 1 && inferredQty <= 20 && Math.abs(inferredQty * priceFromDesc - lineTotal) < 0.01) {
+                      quantity = inferredQty;
+                      description = descPart; // Clean up the description
+                    }
+                  }
+                }
+                
                 // If quantity is 0 or unreasonably high (> 20), default to 1
                 if (quantity <= 0 || quantity > 20) {
                   quantity = 1;
@@ -170,7 +195,7 @@ async function processReceiptWithTabscanner(
                 
                 return {
                   description,
-                  price: item.lineTotal || item.price || 0,
+                  price: lineTotal || unitPrice || 0,
                   quantity,
                 };
               });
@@ -198,6 +223,8 @@ async function processReceiptWithTabscanner(
             const items = lineItems.map((item: TabscannerItem, index: number) => {
               let description = item.desc || item.description || `Item ${index + 1}`;
               let quantity = item.qty || item.quantity || 1;
+              const lineTotal = item.lineTotal || 0;
+              const unitPrice = item.price || 0;
               
               // Handle OCR concatenation errors
               const leadingQtyMatch = description.match(/^(\d+)\s+(.+)$/);
@@ -212,13 +239,35 @@ async function processReceiptWithTabscanner(
                 description = leadingQtyMatch[2];
               }
               
+              // Infer quantity from lineTotal / unitPrice
+              if ((quantity <= 0 || quantity === 1) && unitPrice > 0 && lineTotal > unitPrice) {
+                const inferredQty = Math.round(lineTotal / unitPrice);
+                if (inferredQty > 1 && inferredQty <= 20 && Math.abs(inferredQty * unitPrice - lineTotal) < 0.01) {
+                  quantity = inferredQty;
+                }
+              }
+              
+              // Extract quantity from price in description
+              const priceInDescMatch = description.match(/^(.+?)\s+(\d+\.?\d*)$/);
+              if (priceInDescMatch && (quantity <= 0 || quantity === 1)) {
+                const descPart = priceInDescMatch[1];
+                const priceFromDesc = parseFloat(priceInDescMatch[2]);
+                if (priceFromDesc > 0 && lineTotal > priceFromDesc) {
+                  const inferredQty = Math.round(lineTotal / priceFromDesc);
+                  if (inferredQty > 1 && inferredQty <= 20 && Math.abs(inferredQty * priceFromDesc - lineTotal) < 0.01) {
+                    quantity = inferredQty;
+                    description = descPart;
+                  }
+                }
+              }
+              
               if (quantity <= 0 || quantity > 20) {
                 quantity = 1;
               }
               
               return {
                 description,
-                price: item.lineTotal || item.price || 0,
+                price: lineTotal || unitPrice || 0,
                 quantity,
               };
             });
