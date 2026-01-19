@@ -176,12 +176,17 @@ async function processReceiptWithTabscanner(
                 
                 // Also check if description contains a price pattern like "25.00" and we can extract quantity
                 const priceInDescMatch = description.match(/^(.+?)\s+(\d+\.?\d*)$/);
+                console.log(`Item "${description}": qty=${quantity}, lineTotal=${lineTotal}, priceMatch=${JSON.stringify(priceInDescMatch)}`);
                 if (priceInDescMatch && (quantity <= 0 || quantity === 1)) {
                   const descPart = priceInDescMatch[1];
                   const priceFromDesc = parseFloat(priceInDescMatch[2]);
+                  console.log(`  Checking: descPart="${descPart}", priceFromDesc=${priceFromDesc}, lineTotal=${lineTotal}`);
                   if (priceFromDesc > 0 && lineTotal > priceFromDesc) {
                     const inferredQty = Math.round(lineTotal / priceFromDesc);
-                    if (inferredQty > 1 && inferredQty <= 20 && Math.abs(inferredQty * priceFromDesc - lineTotal) < 0.01) {
+                    const diff = Math.abs(inferredQty * priceFromDesc - lineTotal);
+                    console.log(`  Inferred qty=${inferredQty}, diff=${diff}`);
+                    if (inferredQty > 1 && inferredQty <= 20 && diff < 0.01) {
+                      console.log(`  Setting quantity to ${inferredQty}`);
                       quantity = inferredQty;
                       description = descPart; // Clean up the description
                     }
