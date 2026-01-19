@@ -30,6 +30,7 @@ import { PersonChip } from "@/components/PersonChip";
 import { ReceiptItem } from "@/components/ReceiptItem";
 import { AddPersonModal } from "@/components/AddPersonModal";
 import { AssignmentModal } from "@/components/AssignmentModal";
+import { EditAssignmentModal } from "@/components/EditAssignmentModal";
 import { TipSelector } from "@/components/TipSelector";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { useTheme } from "@/hooks/useTheme";
@@ -62,7 +63,13 @@ export default function SplitScreen() {
   const [filterPerson, setFilterPerson] = useState<string | null>(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showAssignment, setShowAssignment] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+
+  const editingItem = useMemo(() => {
+    if (!editingItemId) return null;
+    return items.find((item) => item.id === editingItemId) || null;
+  }, [editingItemId, items]);
 
   const currencySymbol = currency ? getCurrencySymbol(currency) : "$";
 
@@ -284,6 +291,45 @@ export default function SplitScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
+  const handleReassign = (personId: string) => {
+    if (!editingItemId) return;
+    
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id === editingItemId) {
+          const totalQty = Object.values(item.allocations).reduce((sum, qty) => sum + qty, 0);
+          return {
+            ...item,
+            allocations: { [personId]: totalQty },
+          };
+        }
+        return item;
+      })
+    );
+
+    setEditingItemId(null);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const handleClearAssignment = () => {
+    if (!editingItemId) return;
+    
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id === editingItemId) {
+          return {
+            ...item,
+            allocations: {},
+          };
+        }
+        return item;
+      })
+    );
+
+    setEditingItemId(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
   const handleShare = async () => {
     const summaryText = generateSummaryText();
 
@@ -445,6 +491,7 @@ export default function SplitScreen() {
                 currencySymbol={currencySymbol}
                 selectedQuantity={selectedQuantities[item.id] || 0}
                 onQuantityChange={(qty) => handleQuantityChange(item.id, qty)}
+                onEditAssignment={() => setEditingItemId(item.id)}
                 people={people}
               />
             ))
@@ -545,6 +592,16 @@ export default function SplitScreen() {
         selectedCount={selectedCount}
         currencySymbol={currencySymbol}
         personTotals={personTotals}
+      />
+
+      <EditAssignmentModal
+        visible={!!editingItemId}
+        onClose={() => setEditingItemId(null)}
+        onReassign={handleReassign}
+        onClear={handleClearAssignment}
+        item={editingItem}
+        people={people}
+        currencySymbol={currencySymbol}
       />
     </View>
   );

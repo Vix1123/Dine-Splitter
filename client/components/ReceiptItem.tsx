@@ -18,6 +18,7 @@ interface ReceiptItemProps {
   currencySymbol: string;
   selectedQuantity: number;
   onQuantityChange: (quantity: number) => void;
+  onEditAssignment?: () => void;
   people: Person[];
 }
 
@@ -28,6 +29,7 @@ export function ReceiptItem({
   currencySymbol,
   selectedQuantity,
   onQuantityChange,
+  onEditAssignment,
   people,
 }: ReceiptItemProps) {
   const { theme } = useTheme();
@@ -59,13 +61,18 @@ export function ReceiptItem({
   }));
 
   const handlePressIn = () => {
-    if (!isFullyAllocated) {
-      scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
-    }
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+  };
+
+  const handlePress = () => {
+    if (isFullyAllocated && onEditAssignment) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onEditAssignment();
+    }
   };
 
   const handleCheckboxPress = () => {
@@ -93,6 +100,9 @@ export function ReceiptItem({
       return (
         <View style={styles.allocatedBadge}>
           <ThemedText style={[styles.checkIcon, { color: theme.primary }]}>✓</ThemedText>
+          <ThemedText style={[styles.editHint, { color: theme.textTertiary }]}>
+            Tap to edit
+          </ThemedText>
         </View>
       );
     }
@@ -158,6 +168,7 @@ export function ReceiptItem({
 
   return (
     <AnimatedPressable
+      onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[
@@ -259,15 +270,16 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   allocatedBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   checkIcon: {
     fontSize: 16,
     fontWeight: "700",
+  },
+  editHint: {
+    fontSize: 10,
+    marginTop: 2,
   },
   checkIconSmall: {
     fontSize: 14,
