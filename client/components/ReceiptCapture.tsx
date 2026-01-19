@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, View, Pressable, Image, Platform } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View, Pressable, Image, Platform, Modal, Dimensions } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
@@ -11,6 +11,8 @@ import Animated, {
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface ReceiptCaptureProps {
   imageUri: string | null;
@@ -37,6 +39,12 @@ export function ReceiptCapture({
 }: ReceiptCaptureProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
+  const [showFullImage, setShowFullImage] = useState(false);
+
+  const handleImagePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowFullImage(true);
+  };
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -64,7 +72,12 @@ export function ReceiptCapture({
     return (
       <View style={styles.capturedContainer}>
         <View style={styles.imageRow}>
-          <Image source={{ uri: imageUri }} style={styles.thumbnail} />
+          <Pressable onPress={handleImagePress} style={styles.thumbnailContainer}>
+            <Image source={{ uri: imageUri }} style={styles.thumbnail} />
+            <View style={[styles.zoomHint, { backgroundColor: theme.backgroundRoot + "CC" }]}>
+              <ThemedText style={[styles.zoomIcon, { color: theme.text }]}>🔍</ThemedText>
+            </View>
+          </Pressable>
           <View style={styles.receiptInfo}>
             {isLoading ? (
               <View style={[styles.analyzingContainer, { backgroundColor: theme.primary + "15" }]}>
@@ -109,6 +122,32 @@ export function ReceiptCapture({
             </Pressable>
           ) : null}
         </View>
+
+        <Modal
+          visible={showFullImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFullImage(false)}
+        >
+          <Pressable
+            style={styles.fullImageOverlay}
+            onPress={() => setShowFullImage(false)}
+          >
+            <View style={[styles.fullImageContainer, { backgroundColor: theme.backgroundRoot }]}>
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+              <Pressable
+                style={[styles.closeImageButton, { backgroundColor: theme.backgroundSecondary }]}
+                onPress={() => setShowFullImage(false)}
+              >
+                <ThemedText style={[styles.closeImageText, { color: theme.text }]}>✕</ThemedText>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
       </View>
     );
   }
@@ -275,5 +314,48 @@ const styles = StyleSheet.create({
   },
   galleryIcon: {
     fontSize: 18,
+  },
+  thumbnailContainer: {
+    position: "relative",
+  },
+  zoomHint: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    borderRadius: BorderRadius.xs,
+    padding: 2,
+  },
+  zoomIcon: {
+    fontSize: 12,
+  },
+  fullImageOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullImageContainer: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullImage: {
+    width: SCREEN_WIDTH - 40,
+    height: SCREEN_HEIGHT - 120,
+  },
+  closeImageButton: {
+    position: "absolute",
+    top: 60,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeImageText: {
+    fontSize: 20,
+    fontWeight: "600",
   },
 });
