@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { StyleSheet, View, Pressable, ScrollView, Modal, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
@@ -203,21 +204,19 @@ export function SummaryPanel({
                   style={styles.shareButton}
                   disabled={isSharing}
                 >
-                  <ThemedText
-                    style={[
-                      styles.shareIcon,
-                      { color: isSharing ? theme.textTertiary : theme.primary },
-                    ]}
-                  >
-                    {isSharing ? "..." : "↗"}
-                  </ThemedText>
+                  <Feather
+                    name="share"
+                    size={18}
+                    color={isSharing ? theme.textTertiary : theme.primary}
+                    style={styles.shareIcon}
+                  />
                   <ThemedText
                     style={[
                       styles.shareText,
                       { color: isSharing ? theme.textTertiary : theme.primary },
                     ]}
                   >
-                    Share
+                    {isSharing ? "Sharing..." : "Share"}
                   </ThemedText>
                 </Pressable>
                 <Pressable onPress={() => setIsExpanded(false)} hitSlop={8}>
@@ -464,8 +463,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   shareIcon: {
-    fontSize: 16,
-    fontWeight: "600",
     marginRight: Spacing.xs,
   },
   shareText: {
