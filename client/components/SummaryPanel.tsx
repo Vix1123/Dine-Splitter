@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from "react";
-import { StyleSheet, View, Pressable, ScrollView, Modal } from "react-native";
+import React, { useState, useMemo, useRef } from "react";
+import { StyleSheet, View, Pressable, ScrollView, Modal, Platform, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import { captureRef } from "react-native-view-shot";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,7 +13,7 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { PersonColors, Spacing, BorderRadius } from "@/constants/theme";
+import { PersonColors, Spacing, BorderRadius, Colors } from "@/constants/theme";
 import type { Person, ReceiptItem, PersonSummary } from "@/types/receipt";
 
 interface SummaryPanelProps {
@@ -30,10 +33,12 @@ export function SummaryPanel({
   billTotal,
   serviceCharge = 0,
 }: SummaryPanelProps) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const rotation = useSharedValue(0);
+  const summaryRef = useRef<View>(null);
 
   const { allocatedTotal, personSummaries } = useMemo(() => {
     const summaries: PersonSummary[] = [];
@@ -86,6 +91,41 @@ export function SummaryPanel({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsExpanded(!isExpanded);
     rotation.value = withSpring(isExpanded ? 0 : 180, { damping: 15 });
+  };
+
+  const handleShare = async () => {
+    if (!summaryRef.current) return;
+
+    try {
+      setIsSharing(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const uri = await captureRef(summaryRef, {
+        format: "png",
+        quality: 1,
+        result: "tmpfile",
+      });
+
+      if (Platform.OS === "web") {
+        Alert.alert("Share", "Sharing images is not supported on web. Please use the mobile app.");
+        return;
+      }
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "Share your Dine Split summary",
+        });
+      } else {
+        Alert.alert("Sharing not available", "Please try again on a device that supports sharing.");
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+      Alert.alert("Error", "Failed to share summary. Please try again.");
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const statusColor = isComplete ? theme.success : theme.warning;
@@ -156,13 +196,38 @@ export function SummaryPanel({
                   style={[styles.statusDot, { backgroundColor: statusColor }]}
                 />
               </View>
-              <Pressable onPress={() => setIsExpanded(false)} hitSlop={8}>
-                <ThemedText
-                  style={[styles.closeButton, { color: theme.text }]}
+              <View style={styles.headerActions}>
+                <Pressable
+                  onPress={handleShare}
+                  hitSlop={8}
+                  style={styles.shareButton}
+                  disabled={isSharing}
                 >
-                  ✕
-                </ThemedText>
-              </Pressable>
+                  <ThemedText
+                    style={[
+                      styles.shareIcon,
+                      { color: isSharing ? theme.textTertiary : theme.primary },
+                    ]}
+                  >
+                    {isSharing ? "..." : "↗"}
+                  </ThemedText>
+                  <ThemedText
+                    style={[
+                      styles.shareText,
+                      { color: isSharing ? theme.textTertiary : theme.primary },
+                    ]}
+                  >
+                    Share
+                  </ThemedText>
+                </Pressable>
+                <Pressable onPress={() => setIsExpanded(false)} hitSlop={8}>
+                  <ThemedText
+                    style={[styles.closeButton, { color: theme.text }]}
+                  >
+                    ✕
+                  </ThemedText>
+                </Pressable>
+              </View>
             </View>
 
             <ScrollView
@@ -170,6 +235,19 @@ export function SummaryPanel({
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={true}
             >
+              <View
+                ref={summaryRef}
+                style={[
+                  styles.captureContainer,
+                  { backgroundColor: theme.backgroundRoot },
+                ]}
+                collapsable={false}
+              >
+                <View style={styles.captureHeader}>
+                  <ThemedText style={[styles.captureTitle, { color: theme.text }]}>
+                    Dine Split
+                  </ThemedText>
+                </View>
               <View style={styles.summaryRow}>
                 <ThemedText style={{ color: theme.textSecondary }}>
                   Items Total
@@ -287,6 +365,7 @@ export function SummaryPanel({
                   </View>
                 </View>
               ))}
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -371,6 +450,39 @@ const styles = StyleSheet.create({
   closeButton: {
     fontSize: 20,
     fontWeight: "400",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  shareIcon: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginRight: Spacing.xs,
+  },
+  shareText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  captureContainer: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  captureHeader: {
+    marginBottom: Spacing.md,
+    alignItems: "center",
+  },
+  captureTitle: {
+    fontSize: 18,
+    fontWeight: "700",
   },
   scrollView: {
     flexGrow: 0,

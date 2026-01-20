@@ -1,15 +1,13 @@
 import React from "react";
 import { Pressable, Image, View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import * as Clipboard from "expo-clipboard";
-import { Alert, Platform } from "react-native";
 
 import SplitScreen from "@/screens/SplitScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
+import { useThemeToggle } from "@/hooks/useColorScheme";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing } from "@/constants/theme";
 
@@ -37,9 +35,45 @@ function HeaderTitle() {
   );
 }
 
+function ThemeToggleButton() {
+  const { theme, isDark } = useTheme();
+  const { toggleTheme } = useThemeToggle();
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        toggleTheme();
+      }}
+      hitSlop={8}
+      style={styles.headerButton}
+    >
+      <ThemedText style={[styles.iconText, { color: theme.text }]}>
+        {isDark ? "☀" : "☾"}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+function SettingsButton({ navigation }: { navigation: any }) {
+  const { theme } = useTheme();
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        navigation.navigate("Settings");
+      }}
+      hitSlop={8}
+      style={styles.headerButton}
+    >
+      <ThemedText style={[styles.iconText, { color: theme.text }]}>⚙</ThemedText>
+    </Pressable>
+  );
+}
+
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
-  const { theme } = useTheme();
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
@@ -48,33 +82,8 @@ export default function RootStackNavigator() {
         component={SplitScreen}
         options={({ navigation }) => ({
           headerTitle: () => <HeaderTitle />,
-          headerLeft: () => (
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                navigation.navigate("Settings");
-              }}
-              hitSlop={8}
-              style={styles.headerButton}
-            >
-              <ThemedText style={[styles.iconText, { color: theme.text }]}>⚙</ThemedText>
-            </Pressable>
-          ),
-          headerRight: () => (
-            <Pressable
-              onPress={async () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert(
-                  "Share",
-                  "Complete your bill split to share the summary."
-                );
-              }}
-              hitSlop={8}
-              style={styles.headerButton}
-            >
-              <ThemedText style={[styles.iconText, { color: theme.textTertiary }]}>↗</ThemedText>
-            </Pressable>
-          ),
+          headerLeft: () => <ThemeToggleButton />,
+          headerRight: () => <SettingsButton navigation={navigation} />,
         })}
       />
       <Stack.Screen
