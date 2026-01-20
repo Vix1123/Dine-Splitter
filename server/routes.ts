@@ -147,9 +147,11 @@ async function processReceiptWithTabscanner(
               console.log("Line items found:", lineItems.length);
 
               const items = lineItems.map((item: TabscannerItem, index: number) => {
-                // Prefer descClean (full cleaned description) over desc (often truncated)
-                let description = item.descClean || item.desc || item.description || `Item ${index + 1}`;
-                let quantity = item.qty || item.quantity || 1;
+                // Keep both raw description (for price extraction) and cleaned description
+                const rawDesc = item.desc || item.description || `Item ${index + 1}`;
+                let description = item.descClean || rawDesc;
+                // Handle qty: 0 correctly - don't default to 1 yet
+                let quantity = typeof item.qty === 'number' ? item.qty : (item.quantity || 0);
                 const lineTotal = item.lineTotal || 0;
                 const unitPrice = item.price || 0;
                 
@@ -182,15 +184,16 @@ async function processReceiptWithTabscanner(
                   }
                 }
                 
-                // Also check if description contains a price pattern like "25.00" and we can extract quantity
-                const priceInDescMatch = description.match(/^(.+?)\s+(\d+\.?\d*)$/);
+                // Also check if raw description contains a price pattern like "25.00" and we can extract quantity
+                // Use rawDesc because descClean often strips the price
+                const priceInDescMatch = rawDesc.match(/^(.+?)\s+(\d+[.,]?\d*)$/);
                 if (priceInDescMatch && (quantity <= 0 || quantity === 1)) {
-                  const descPart = priceInDescMatch[1];
-                  const priceFromDesc = parseFloat(priceInDescMatch[2]);
+                  const descPart = priceInDescMatch[1].trim();
+                  const priceFromDesc = parseFloat(priceInDescMatch[2].replace(',', '.'));
                   if (priceFromDesc > 0 && lineTotal > priceFromDesc) {
                     const inferredQty = Math.round(lineTotal / priceFromDesc);
                     const diff = Math.abs(inferredQty * priceFromDesc - lineTotal);
-                    if (inferredQty > 1 && inferredQty <= 20 && diff < 0.01) {
+                    if (inferredQty > 1 && inferredQty <= 20 && diff < 1) {
                       quantity = inferredQty;
                       description = descPart;
                     }
