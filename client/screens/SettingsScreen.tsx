@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, Switch, Pressable } from "react-native";
+import { StyleSheet, View, Switch, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import * as Haptics from "expo-haptics";
@@ -36,7 +36,7 @@ export default function SettingsScreen() {
       contentContainerStyle={[
         styles.content,
         {
-          paddingTop: headerHeight + Spacing.xl,
+          paddingTop: Platform.OS === "ios" ? headerHeight + Spacing.xl : Spacing.lg,
           paddingBottom: insets.bottom + Spacing.xl,
         },
       ]}

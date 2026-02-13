@@ -399,7 +399,7 @@ export default function SplitScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: headerHeight + Spacing.xl,
+            paddingTop: Platform.OS === "ios" ? headerHeight + Spacing.xl : Spacing.lg,
             paddingBottom: items.length > 0 ? 200 : Spacing["3xl"],
           },
         ]}

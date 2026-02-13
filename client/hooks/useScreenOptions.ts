@@ -13,17 +13,16 @@ export function useScreenOptions({
 }: UseScreenOptionsParams = {}): NativeStackNavigationOptions {
   const { theme, isDark } = useTheme();
 
+  const isIOS = Platform.OS === "ios";
+  const useTransparent = transparent && isIOS;
+
   return {
     headerTitleAlign: "center",
-    headerTransparent: transparent,
+    headerTransparent: useTransparent,
     headerBlurEffect: isDark ? "dark" : "light",
     headerTintColor: theme.text,
     headerStyle: {
-      backgroundColor: Platform.select({
-        ios: undefined,
-        android: theme.backgroundRoot,
-        web: theme.backgroundRoot,
-      }),
+      backgroundColor: useTransparent ? undefined : theme.backgroundRoot,
     },
     gestureEnabled: true,
     gestureDirection: "horizontal",
