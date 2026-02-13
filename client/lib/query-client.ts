@@ -8,10 +8,11 @@ export function getApiUrl(): string {
   let host = process.env.EXPO_PUBLIC_DOMAIN;
 
   if (!host) {
-    throw new Error("EXPO_PUBLIC_DOMAIN is not set");
+    host = "dine-splitter--Vix1123.replit.app";
   }
 
-  let url = new URL(`https://${host}`);
+  const protocol = host.includes("localhost") ? "http" : "https";
+  let url = new URL(`${protocol}://${host}`);
 
   return url.href;
 }
